@@ -846,7 +846,12 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 
 func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
 	if channel.Type == model.CHANNEL_DIRECT {
-		sc, err := a.createDirectChannel(users[sChannel.Members[0]].Id, users[sChannel.Members[1]].Id)
+		var user1 = users[sChannel.Members[0]]
+		var user2 = users[sChannel.Members[1]]
+		if user1 == nil || user2 == nil {
+			return nil
+		}
+		sc, err := a.createDirectChannel(user1.Id, user2.Id)
 		if err != nil {
 			return nil
 		}
@@ -859,7 +864,11 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		members := make([]string, len(sChannel.Members))
 
 		for i := range sChannel.Members {
-			members[i] = users[sChannel.Members[i]].Id
+			var user = users[sChannel.Members[i]]
+			if user == nil {
+				return nil
+			}
+			members[i] = user.Id
 		}
 
 		sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
